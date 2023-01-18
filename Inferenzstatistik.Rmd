@@ -20,7 +20,7 @@ output:
      σ² = --- sum(xi-μ)^2       
            N
      
-     σ  = sqrt(sum(xi-μ)^2/  N)
+     σ  = sqrt(sum(xi-μ)^2 /  N)
 
 # Varianz/Standardabweichung einer Stichprobe:
 
