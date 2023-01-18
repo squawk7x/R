@@ -34,3 +34,8 @@ ALT + SHIFT + k
 "~/"
 ```
 
+```{r}
+is.na(data)
+
+```
+
