@@ -1,0 +1,591 @@
+---
+title: "R-Tutorial 3"
+output: html_notebook
+---
+
+# D E S K R I P T I V E  S T A T I S T I K
+
+# SKALENMITTELWERTE
+
+# Video
+```{r}
+dt <- data
+str(dt)
+
+dt = dt %>% 
+  rowwise() %>%
+  mutate (BF_Ext=round(mean(c(bf_1,
+                               bf_6,
+                               bf_13, 
+                               bf_16),
+                        na.rm=TRUE),
+                 digits=2))
+select(dt, BF_Ext)
+```
+
+# ohne %>% funktioniert es auch ohne 'rowwise()' (???)
+```{r}
+dt = mutate(dt, 
+            BF_Ext = mean(c(bf_1,bf_6, bf_13, bf_16)), 
+            na.rm=T)
+
+select(dt, BF_Ext)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(descr)
+library(skimr)
+library(psych)
+library(gapminder)
+```
+
+```{r}
+data$prok_2.r=5-data$prok_2
+data$prok_3.r=5-data$prok_3
+data$prok_5.r=5-data$prok_5
+data$prok_7.r=5-data$prok_7
+data$prok_8.r=5-data$prok_8
+```
+
+```{r}
+data$geschl.f<-factor(c(data$geschl),
+                      levels=c(1,2,3),
+                      labels=c('w', 'm', 'd'))
+
+data$urlaub.f<-factor(c(data$urlaub),
+                      levels=c(1,2,3),
+                      labels=c('Stadt', 'Berge', 'Meer'))
+
+data$mitschreiben.f<-factor(c(data$mitschreiben),
+                      levels=c(1:5),
+                      labels=c('Block', 'Ausdrucken', 'Laptop', 'Tablet', 'keine'))
+
+dt<-data
+```
+
+# Bitte berechnen Sie für jede Person den Skalenmittelwert zu Prokrastination, den Sie PROK nennen. Benutzen Sie dazu den Kodierplan des 3. R-Tutorials.
+```{r}
+dt$prok_2.r = (4+1) - dt$prok_2
+dt$prok_3.r = (4+1) - dt$prok_3
+dt$prok_5.r = (4+1) - dt$prok_5
+dt$prok_7.r = (4+1) - dt$prok_7
+dt$prok_8.r = (4+1) - dt$prok_8
+
+dt <- dt %>%
+  rowwise() %>%
+  mutate(PROK = mean(c(prok_1,
+                       prok_2.r,
+                       prok_3.r,
+                       prok_4,
+                       prok_5.r,
+                       prok_6,
+                       prok_7.r,
+                       prok_8.r,
+                       prok_9,
+                       prok_10), 
+                     na.rm=TRUE))
+select(dt, PROK)
+```
+
+# Quiz
+```{r}
+dt = dt %>% 
+  rowwise() %>%
+    mutate(PROKSUM=sum(c(prok_1,
+                     prok_2.r,
+                     prok_3.r,
+                     prok_4,
+                     prok_5.r,
+                     prok_6,
+                     prok_7.r,
+                     prok_8.r,
+                     prok_9,
+                     prok_10), 
+                     na.rm=TRUE),
+           PROKKOLI=PROKSUM/10
+           )
+select(dt, c(PROKSUM, PROKKOLI))
+dt=select(dt, -c(PROKSUM, PROKKOLI))
+```
+
+# Einfügen von BF_Ext
+```{r}
+dt <- dt %>% 
+  rowwise() %>% 
+  mutate(BF_Ext = round(mean(c(bf_1, bf_6, bf_13, bf_16), 
+                        na.rm=T),
+                  digits=2)
+        )
+```
+
+
+# ZENTRIERUNG UND Z-STANDARDISIERUNG
+# scale(x, center = TRUE, scale = TRUE)
+
+# Video
+```{r}
+dt$BF_Ext.cen.1=scale(dt$BF_Ext, center=TRUE, scale=FALSE)
+
+dt$BF_Ext.z.1=scale(dt$BF_Ext, center=TRUE, scale=TRUE)
+
+select(dt, c(BF_Ext, BF_Ext.cen.1, BF_Ext.z.1))
+```
+
+
+```{r}
+dt<-
+  dt %>% 
+  rowwise() %>%
+  mutate(
+  BF_Ext.cen.2 =  BF_Ext - mean(dt$BF_Ext, na.rm=T),
+  BF_Ext.z.2   = BF_Ext.cen.2 / sd(dt$BF_Ext, na.rm=T)
+  )
+  
+select(dt, c(BF_Ext, BF_Ext.cen.2, BF_Ext.z.2))
+```
+
+# 1. Hat die Person mit der Nummer 47 einen über- oder unterdurchschnittlichen Prokrastinationswert, im Vergleich zur Stichprobe?
+```{r}
+dt$PROK.cen = scale(dt$PROK, center=TRUE, scale=FALSE)
+dt$PROK.z   = scale(dt$PROK, center=TRUE, scale=TRUE)
+
+select(dt, c(PROK, PROK.cen, PROK.z))
+
+filter(dt, Nr == 47) %>% select(c(Nr, PROK, PROK.cen, PROK.z))
+
+```
+
+
+# 2. Welche Nummer hat die Person, deren Wert auf der Variablen bf_4 fast drei Standardabweichungen unter dem Mittelwert liegt?
+```{r}
+dt$BF_4.cen = scale(dt$bf_4, center=TRUE, scale=FALSE)
+dt$BF_4.z   = scale(dt$bf_4, center=TRUE, scale=TRUE)
+
+select(dt, c(Nr, bf_4, BF_4.cen, BF_4.z))
+filter (dt, BF_4.z < -2.9) %>% select(Nr, bf_4, BF_4.cen, BF_4.z)
+```
+
+
+# 3a. Wie groß sind Mittelwert und Standardabweichung von der zentrierten Variable lezu_4? 
+```{r}
+dt$LEZU_4.cen = scale(dt$lezu_4, center=TRUE, scale=FALSE)
+
+select(dt, c(lezu_4, LEZU_4.cen))
+
+MEAN_LEZU_4.cen = mean(dt$LEZU_4.cen, na.rm=T)
+SD_LEZU_4.cen = sd(dt$LEZU_4.cen, na.rm=T)
+
+cat('Mittelwert von lezu_4: ', MEAN_LEZU_4.cen, '\n')
+
+cat('Standardabweichung von lezu_4: ', SD_LEZU_4.cen, '\n')
+```
+
+# 3b. Wie groß sind Mittelwert und Standardabweichung bei der z-standardisierten Variable lezu_4?
+```{r}
+dt$LEZU_4.z = scale(dt$lezu_4, center=TRUE, scale=TRUE)
+
+select(dt, c(lezu_4, LEZU_4.z))
+
+MEAN_LEZU_4.z = mean(dt$LEZU_4.z, na.rm=T)
+SD_LEZU_4.z = sd(dt$LEZU_4.z, na.rm=T)
+
+cat('Mittelwert von lezu_4.z: ', MEAN_LEZU_4.z, '\n')
+
+cat('Standardabweichung von lezu_4.z: ', SD_LEZU_4.z, '\n')
+```
+
+# DESKRIPTIVSTATISTIK KATEGORIALER VARIABLEN
+
+# 1. Lassen Sie sich die Häufigkeiten der Variable mitschreiben.f ausgeben.
+```{r}
+table(dt$mitschreiben.f)
+```
+
+# 2. Erstellen Sie eine Kreuztabelle zwischen den Variablen mitschreiben.f und geschl.f.
+```{r}
+table(dt$mitschreiben.f)
+table(dt$mitschreiben.f, dt$geschl.f)
+
+cat('\nRelative Gesamthäufigkeiten:')
+100*table(dt$mitschreiben.f, dt$geschl.f) %>% prop.table() %>% round(4)
+cat('\nRelative Häufigkeiten bezogen auf Zeilen:')
+100*table(dt$mitschreiben.f, dt$geschl.f) %>% prop.table(margin=1) %>% round(4)
+cat('\nRelative Häufigkeiten bezogen auf Spalten:')
+100*table(dt$mitschreiben.f, dt$geschl.f) %>% prop.table(margin=2) %>% round(4)
+```
+
+```{r}
+library(descr)
+crosstab(data$mitschreiben.f, data$geschl.f)
+```
+
+# DESKRIPTIVSTATISTIK METRISCHER VARIABLEN
+
+# wichtige Funktionen
+
+● summarize()
+● quantile(): Quantile 
+● mean(): Mittelwert
+● median(): Median
+● sd(): Standardabweichung
+● var(): Varianz
+● min(): Minimum
+● max(): Maximum
+● range(): Range
+● n(): Anzahl Fälle 
+       funktioniert nur bei 
+          filter()
+          summarize()
+          mutate()
+          
+modus_ <- function(x) {
+names(which.max(table(x)))
+}
+
+#Im Tutorial wurde group_by() nicht verwendet -> falsche Anzeige
+```{r}
+dt %>%
+  group_by() %>% 
+    summarize(m = mean(BF_Ext, na.rm=T),
+              v  = var(BF_Ext, na.rm=T),
+              q_25 = quantile(BF_Ext, probs=0.25, na.rm=T),
+              q_75 = quantile(BF_Ext, probs=0.75, na.rm=T),
+              n = n()
+              ) %>% 
+  ungroup()
+```
+
+```{r}
+# ohne Vorwissen -> filter(...)
+dt %>%
+  group_by() %>%
+  filter(urlaub.f == 'Stadt') %>%
+  summarise(urlaub.f,
+            m = mean (BF_Ext, na.rm=T),
+            n = n()) %>% 
+  unique() %>% 
+  ungroup()
+
+# besser so:
+dt %>%
+  group_by(urlaub.f) %>% 
+    summarize(m = mean(BF_Ext, na.rm=T),
+              n = n()
+              ) %>%
+  ungroup()
+
+#über mehrere Gruppen:
+dt %>%
+  filter(!is.na(urlaub.f), !is.na(geschl.f)) %>%
+  group_by(urlaub.f, geschl.f) %>% 
+    summarize(m = mean(BF_Ext),
+              n = n(),
+              .groups = 'keep'
+              ) %>%
+  ungroup()
+
+# Warum ungroup() ?
+dt <- dt %>% 
+  group_by(geschl.f) %>% 
+  mutate(BF_Ext_gender = mean(BF_Ext, na.rm=T))
+  
+dt %>% 
+  #rowwise() %>% # ohne rowwise() -> Mittelwert über alle Teilnehmer
+  mutate(lezu_1_m = mean(lezu_1, na.rm=T)) %>% 
+  select(lezu_1_m)
+  
+# Gruppierungen immer auflösen!
+dt <- dt %>% 
+  group_by(geschl.f) %>% 
+  mutate(BF_Ext_gender = mean(BF_Ext, na.rm=T)) %>% 
+  ungroup()
+  
+dt %>% 
+  mutate(lezu_1_m = mean(lezu_1, na.rm=T)) %>% 
+  select(geschl.f, lezu_1_m)
+```
+
+# Lassen Sie sich zusammenfassend Mittelwert, Standardabweichung und die drei Quartile der Variablen PROK für jede Ausprägung der Variablen urlaub.f ausgeben. Berechnen Sie auch die Anzahl jeder Variablenausprägung von urlaub.f.
+
+```{r}
+dt %>%
+  group_by(urlaub.f) %>%
+  summarize(m=mean(PROK), 
+            sd=sd(PROK), 
+            q_25=quantile(PROK, probs=0.25), 
+            median=median(PROK), 
+            q_75=quantile(PROK, probs=0.75), 
+            n=n()
+            ) %>% 
+  ungroup()
+```
+
+```{r}
+summary(dt$PROK)
+```
+
+# Erstellen Sie zwei neue Variablen PROK_iqa und PROK_range, die den Interquartilsabstand bzw. den Range der Variablen PROK beinhaltet. Lassen Sie sich anschließend nur diese beiden Variablen ausgeben.
+```{r}
+PROK_q_25=quantile(dt$PROK, probs=0.25)
+PROK_q_75=quantile(dt$PROK, probs=0.75)
+
+cat('PROK_q_25:', PROK_q_25, '\n')
+cat('PROK_q_25:', PROK_q_75, '\n')
+
+# 1. Möglichkeit:
+PROK_iqa_1=PROK_q_75 - PROK_q_25
+cat('PROK_iqa berechnet als Differenz q75-q25: ', PROK_iqa_1, '\n')
+
+# 2. Möglichkeit:
+PROK_iqa_2=IQR(dt$PROK)
+cat('PROK_iqa berechnet mit IQR Funktion: ', PROK_iqa_2, '\n')
+    
+PROK_intervall = range(dt$PROK)
+cat('PROK_intervall: ', PROK_intervall, '\n')
+
+PROK_range=max(range(dt$PROK)) - min(range(dt$PROK))
+cat('PROK_range Intervallbreite: ', PROK_range, '\n')
+
+
+```
+
+# Hint:
+```{r}
+dt %>% 
+  mutate(PROK_iqa = quantile(PROK, probs=0.75) - quantile(PROK, probs=0.25),
+         PROK_range = max(PROK) - min(PROK)) %>%
+  select(PROK_iqa, PROK_range)
+```
+
+# Zusammenfassung der Deskriptivstatistiken:
+```{r}
+summary(dt$PROK)
+
+skim(dt)
+skim(dt, geschl, geschl.f)
+skim(data, starts_with("bf"))
+
+describe(dt)
+dt %>%
+  select(geschl, geschl.f) %>%
+  describe()
+data %>%
+  select(starts_with("bf")) %>%
+  describe()
+
+describeBy(dt$PROK, dt$urlaub.f)
+```
+
+#TRANSFER:
+
+# Aufgabe 1:
+```{r}
+table(gm$continent)
+# Datensatz im Longformat -> Doppelzählungen (12x) 
+
+gapminder %>% 
+  filter(year == 2007) %>% 
+  group_by(continent) %>%
+  summarise(number_countries=length(country)) %>% 
+  ungroup()
+
+gapminder %>% 
+  group_by(continent) %>%
+  summarise(number_countries=length(unique(country))) %>% 
+  ungroup()
+
+```
+
+# Hint:
+```{r}
+table(gapminder$continent)
+table(gapminder$year)
+#Möglichkeit 1
+
+sub <- filter(gapminder, year=="2007")
+table(sub$continent)
+
+#Möglichkeit 2
+sub2 <- distinct(gapminder, country, .keep_all = TRUE)
+table(sub2$continent)
+```
+
+#Aufgabe_2a:
+#Kontinent mit durchschnittlich meisten Einwohnern:
+```{r}
+gapminder %>% 
+  group_by(continent) %>%
+  summarise(avg_pop_continent = mean(pop)) %>%
+  arrange(desc(avg_pop_continent)) %>%
+  filter(avg_pop_continent == max(avg_pop_continent)) %>%
+  ungroup()
+
+```
+# Aufgabe_2b:
+# Welcher Kontinent hat das Land mit wenigsten Einwohnern:
+```{r}
+gapminder %>% 
+  group_by(country) %>%  
+  summarise(avg_pop_country =
+              sum(pop)/length(unique(gapminder$year))) %>%
+  filter(avg_pop_country == min(avg_pop_country)) %>%
+  ungroup()
+
+filter(gapminder, gapminder$country =="Sao Tome and Principe") 
+```
+
+# Hint:
+```{r}
+#Möglichkeit 1
+describeBy(gapminder$pop, gapminder$continent)
+
+#Möglichkeit 2
+gapminder %>%
+  group_by(continent) %>%
+  summarize(mittel = mean(pop),
+            min = min(pop)) %>%
+  ungroup()
+```
+
+
+
+
+# Aufgabe 3a:
+# Bitte filtern Sie zuerst nach den Ländern, die über alle Jahre hinweg ein durchschnittliches Pro-Kopf-BIP von mehr als 20.000 International Dollars aufweisen. 
+```{r}
+gm3a <- gapminder %>% 
+  group_by(country) %>% 
+  mutate(mean_gdpPercap_country_1952_2007 = mean(gdpPercap)) %>%
+  filter(mean_gdpPercap_country_1952_2007 > 20000) %>% 
+  ungroup()
+
+# Zwischenergebnis zur Weiterberechnung der Aufgabe:
+gm3a
+
+gm3a %>% 
+  group_by(country) %>% 
+  distinct(country, mean_gdpPercap_country_1952_2007) %>% 
+  summarize(country, 
+            mean_gdpPercap_country_1952_2007) %>% 
+  ungroup()
+
+```
+# Aufgabe 3b:
+# Berechnen Sie anschließend für die übrig gebliebenen Länder, gruppiert nach Kontinent, für das Jahr 2007 den Populationsmittelwert und das Pro-Kopf-BIP.
+```{r}
+# Weiterberchnung:
+gm3b <- gm3a %>% 
+  group_by(continent) %>% 
+  filter(year == 2007) %>% 
+  summarize(#continent, 
+            country,
+            mean_population_continent = mean(pop),
+            mean_gdpPercap_continent = mean(gdpPercap),
+            mean_gdpPercap_country_1952_2007,
+            n = n(),
+            .groups = 'drop') %>%
+  ungroup()
+
+cat('\nEs sind noch', length(unique(gm3b$continent)), 'Kontinente und', length(unique(gm3b$country)), 'Länder im Datensatz enthalten.')
+
+# Anzeige der Berechnung in Tabelle:
+gm3b
+
+
+```
+
+# Lösung in Hint Aufgabe 3:
+```{r}
+gapminder %>%
+  group_by(country) %>%
+  mutate(m = mean(gdpPercap)) %>%
+  ungroup() %>%
+  filter(m>20000, year==2007) %>%
+  group_by(continent) %>%
+  summarize(population_mean = mean(pop),
+            gdpPercap_mean = mean(gdpPercap),
+            n = n()) %>%
+  ungroup()
+```
+
+# Aufgabe 4:
+
+# Bitte berechnen Sie den Mittelwert der Pro-Kopf-BIPs der Jahre 1997, 2002 und 2007 auf zwei Weisen:
+
+# 4.1 Wandeln Sie den Datensatz in das wide-Format um. Berechnen Sie anschließend den Skalenmittelwert der Variablen gdpPercap über die gewünschten Jahre.
+
+```{r}
+gm_wide <- gapminder %>% 
+  pivot_wider(id_cols = country,
+              names_from = c(year),
+              values_from = c('gdpPercap')
+              )
+```
+
+```{r}
+library(tidyr)
+gm_wide <- gapminder %>% 
+  pivot_wider(names_from = year,
+              values_from = c('lifeExp', 'pop', 'gdpPercap')
+             )
+
+gm_wide %>% 
+    group_by(country) %>% 
+    summarise(avg_gdpPercap_97_02_07 = mean(c(gdpPercap_1997, gdpPercap_2002, gdpPercap_2007))) %>% 
+    ungroup()
+
+```
+
+# 4.2 Wählen Sie zuerst die entsprechenden Jahre (Fälle) aus. Berechnen Sie anschließend das Pro-Kopf-BIP für jedes Land über diesen Zeitraum.
+```{r}
+gm_97_02_07 <- gapminder %>% 
+               filter(year %in% c(1997, 2002, 2007))
+
+gm_97_02_07 %>% 
+  group_by(country) %>% 
+  summarise(avg_gdpPercap_97_02_07= mean(gdpPercap)) %>% 
+  ungroup()
+```
+
+# Hint zu Aufgabe 4:
+```{r}
+#Zu 1:
+gapminder %>%
+  pivot_wider(id_cols = country,
+              names_from = year,
+              values_from = gdpPercap) %>%
+  select(country, bip_1997 = "1997", bip_2002 = "2002", bip_2007 = "2007") %>%
+  rowwise() %>%
+  mutate(BIP = mean(c(bip_1997, bip_2002, bip_2007), na.rm=TRUE))
+
+#Zu 2:
+gapminder %>%
+  filter(year %in% c("1997", "2002", "2007")) %>%
+  group_by(country) %>%
+  mutate(BIP = mean(gdpPercap))
+```
+
+
+# Aufgabe 5:
+```{r}
+gm_BIP <- gapminder %>% 
+  mutate(BIP = pop * gdpPercap)
+
+gm_BIP
+
+gm_BIP_D_2007 <- filter(gm_BIP, country == 'Germany' & year == 2007) %>% select(country, pop, gdpPercap, BIP)
+
+cat('Das BIP in Deutschland im Jahr 2007 war', gm_BIP_D_2007$BIP, '.')
+```
+
+# Hint Aufgabe 5:
+```{r}
+gapminder %>%
+  mutate(BIP = gdpPercap * pop) %>%
+  select(country, year, BIP) %>%
+  filter(country == "Germany" & year==2007)
+```
+
+

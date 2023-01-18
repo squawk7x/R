@@ -1,0 +1,531 @@
+---
+title: "R-Tutorial 4"
+output: html_notebook
+---
+
+# G R A F I K E N 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(datasauRus)
+```
+
+# 1. Verschaffen Sie sich zunächst einen Überblick über den Datensatz.
+```{r}
+ds <- datasaurus_dozen
+
+cat('\n dim:\n')
+dim(ds)
+cat('\n nrow:\n')
+nrow(ds)
+cat('\n ncol:\n')
+ncol(ds)
+cat('\n names:\n')
+names(ds)
+cat('\n str:\n')
+str(ds)
+cat('\n summary:\n')
+summary(ds)
+cat('\n head:\n')
+head(ds)
+cat('\n desribe:\n')
+describe(ds)
+cat('\n skim:\n')
+skim(ds)
+```
+
+# 2. Berechnen Sie, gruppiert nach Datensatz, verschiedene Deskriptivstatistiken: Mittelwert von x und y, Standardabweichung von x und y, Korrelation von x und y (mit der Funktion cor(x,y)).
+```{r}
+ds %>% 
+  group_by(dataset) %>% 
+  summarise(mean_x=mean(x),
+            mean_y=mean(y),
+            sd_x=sd(x),
+            sd_y=sd(y),
+            cor_x_y=cor(x,y)
+            ) %>% 
+  ungroup()
+
+```
+
+# 3. Vergleichen Sie die Deskriptivstatistiken der 13 Teildatensätze.
+```{r}
+# datasets sind sehr ähnlich
+```
+
+# ggplot
+```{r}
+ggplot(ds, aes(x=x, y=y, colour=dataset))+
+    geom_point()+
+    theme_void()+
+    theme(legend.position = "none")+
+    facet_wrap(vars(dataset), ncol=3)
+```
+
+#Base R
+```{r}
+load('dt.rda')
+plot(dt$PROK, dt$BF_Ext)
+abline(lm(BF_Ext ~ PROK, data = dt))
+```
+
+#ggplot2
+```{r}
+# Bsp mit numerischen Variablen:
+ggplot(dt, aes(x = PROK, y = BF_Ext)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = T) # se: standard error anzeigen
+```
+
+```{r}
+# Bsp mit 1 Faktor-Variablen und 1 metrischen Variablen:
+ggplot(dt, aes(x=geschl.f, y=BF_Ext)) + 
+  #geom_point() + 
+  #geom_smooth() +
+  #geom_jitter(width=0.1)
+  #geom_violin() 
+  geom_boxplot()
+
+```
+
+# Datensatz für Tutorial erstellen (+LEZU):
+```{r}
+
+dt4 <- dt[, 1:49]
+
+dt4$LEZU = dt4 %>% select(starts_with('lezu_')) %>% rowMeans(na.rm = T)
+
+dt4$geschl.f <- recode_factor(dt4$geschl.f,
+                              weiblich='w',
+                              männlich='m')
+```
+
+# 1. Erstellen Sie ein Punktediagramm (Scatterplot) mit dem Skalenmittelwert von Extraversion (BF_Ext) und Lebenszufriedenheit (LEZU).
+
+# 2. Legen Sie anschließend eine Regressionsgerade in das Punktediagramm hinein. Sie können das Konfidenzintervall deaktivieren, wenn Sie das wünschen.
+
+```{r}
+ggplot(dt4, aes(x=BF_Ext, LEZU)) +
+  geom_point() + 
+  geom_smooth(method='lm', se=T)
+```
+
+# 3. Erstellen Sie ein Punktediagramm zwischen den Variablen bf_1 (kontaktfreudig) und bf_6 (gesellig). Erwarten Sie eher einen positiven oder einen negativen Zusammenhang?
+
+# 4. Was ist der Unterschied zu dem Scatterplot in der letzten Aufgabe? Mit welchem "geom" lässt sich künstlich eine höhere Streuung der Werte erzeugen?
+
+```{r}
+ggplot(dt4, aes(x=bf_1, y=bf_6)) + 
+  #geom_point(method='lm', na.rm=T) +
+  geom_smooth(method='lm', na.rm = T) +
+  geom_jitter(width = 1, height = 1, na.rm=T)
+```
+
+# 5. Wie sieht das Punktediagramm aus, wenn Sie eine nominalskalierte Variable auf der x-Achse verwenden? Erstellen Sie eine Grafik mit mitschreiben.f und BF_Ext. Welche geoms sind eventuell besser geeignet?
+
+```{r}
+ggplot(dt4, aes(x=mitschreiben.f, y=BF_Ext)) + 
+  geom_boxplot() + 
+  geom_violin() +
+  geom_jitter()
+```
+
+# ggplot mit 1 Variablen:
+```{r}
+ggplot(dt4, aes(x=PROK)) + 
+  #geom_area(stat='bin')
+  #geom_density()
+  #geom_dotplot()
+  #geom_freqpoly()
+  geom_histogram()
+  
+  
+
+ggplot(dt4, aes(x=geschl.f)) +
+  geom_bar()
+```
+
+# ggplot mit 2 Variablen:
+# beide continous / numeric:
+```{r}
+ggplot(dt4, aes(x=bf_1, y=bf_2)) +
+  #geom_label(aes(label=bf_1), na.rm=T) +
+  geom_point(na.rm=T) +
+  #geom_quantile() +
+  geom_rug() +
+  geom_smooth(method=lm, na.rm=T) +
+  geom_text(label='#', na.rm=T)
+```
+
+# ggplot mit 2 Variablen:
+# 1 continous / 1 discrete:
+```{r}
+ggplot(dt4, aes(x=bf_1, y=geschl.f)) +
+  #geom_col(na.rm=T) +
+  geom_boxplot(na.rm=T) +
+  geom_dotplot(na.rm=T) + 
+  geom_violin()
+```
+
+# ggplot mit 2 Variablen:
+# 2 discrete:
+```{r}
+ggplot(dt4, aes(x=urlaub.f, y=geschl.f, color = geschl.f)) +
+  geom_count() +
+  geom_jitter(width=0.1, height=0.1)
+```
+
+# Video 2:
+# aes 1x lokal definiert -> immer lokal definieren! 
+```{r}
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point() # 2 Variablen
+  #geom_histogram() # 1 Variable
+
+ggplot(dt4) +
+  geom_point(aes(x=LEZU, y=PROK)) +
+  geom_histogram(aes(x=LEZU)) 
+
+ggplot(dt4) +
+  geom_point(aes(x=LEZU, y=PROK)) +
+  geom_histogram(aes(x=LEZU, y=..count..))
+  
+ggplot(dt4) +
+  geom_point(aes(x=LEZU, y=PROK)) +
+  geom_histogram(aes(x=LEZU, y=..density..)) 
+  
+```
+
+# 3 D plots (2 Variablen + size, color, shape, ...)
+```{r}
+ggplot(dt4) +
+  geom_point(aes(x=LEZU, y=PROK)) 
+
+ggplot(dt4, aes(x=LEZU, y=PROK, color=geschl.f)) +
+  geom_point() + 
+  geom_smooth(method='lm')
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(color=geschl.f)) + 
+  geom_smooth(aes(x=LEZU, y=PROK), method='lm', se=F)
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(color=geschl.f)) + 
+  geom_smooth(method='lm', se=F)
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(size=BF_Ext), na.rm=T) + 
+  geom_smooth(aes(color=geschl.f), method='lm', se=F)
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(color=BF_Ext)) + # Farben in Abh. einer anderen Variablen
+  geom_smooth(method='lm', se=F)
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(alpha=BF_Ext)) + # unterschiedliche Transparenz
+  geom_smooth(method='lm', se=F)
+
+ggplot(dt4, aes(x=LEZU, y=PROK)) +
+  geom_point(aes(size=BF_Ext, shape=geschl.f, color=mitschreiben.f), na.rm=T) + # unterschiedliche Transparenz
+  geom_smooth(method='lm', se=F)
+```
+
+# 1. Erstellen Sie einen Scatterplot von BF_Ext und LEZU.
+# 2. Visualisieren Sie die Verteilung der Extraversion auf der x-Achse mit geom_density().
+```{r}
+ggplot(dt4) +
+  geom_jitter(aes(x=BF_Ext, y=LEZU)) +
+  geom_density(aes(x=BF_Ext))
+```
+
+# 3. Lassen Sie die Größe der Punkte mit den Neurotizismus-Werten (BF_Neu (o. PROK) variieren.
+# 4. Visualisieren Sie das Geschlecht (geschl.f) der Personen in beiden "geoms" durch Färbung der Punkte bzw. Färbung der Dichteplots.
+```{r}
+ggplot(dt4) +
+  geom_jitter(aes(x=BF_Ext, y=LEZU, size=PROK, color=geschl.f)) +
+    geom_density(aes(x=BF_Ext, color=geschl.f)) +
+```
+
+# Erstellen Sie mehrere Boxplots, einen für jede Ausprägung der Variablen mitschreiben.f. Auf der y-Variablen soll die Gewissenhaftigkeitswerte (BF_Gew (o. BF_Ext) abgetragen sein. Jeder Boxplot soll seine eigene Füllfarbe haben.
+```{r}
+ggplot(dt4, aes(x=mitschreiben.f, y=BF_Ext, fill=mitschreiben.f)) +
+  geom_boxplot()
+```
+
+# Video 3:
+```{r}
+dt4 %>% 
+  mutate(LEZU.z = (LEZU - mean(dt4$LEZU))/sd(dt4$LEZU)) %>% 
+  ggplot(aes(x=LEZU.z)) +
+  geom_histogram()
+
+ggplot(dt4, aes(x=PROK, y=BF_Ext)) + 
+  geom_point() +
+  geom_smooth(method='lm', se=F)
+
+
+ggplot(dt4, aes(x=PROK, y=BF_Ext)) + 
+  geom_point() +
+  geom_smooth(data=filter(dt4, geschl.f=='m'), method='lm', se=F)
+
+
+ggplot(dt4, aes(x=PROK, y=BF_Ext)) + 
+  geom_point() +
+  geom_smooth(data=filter(dt4, geschl.f=='w'), method='lm', se=F)
+
+```
+
+```{r}
+ggplot(dt4, aes(x=LEZU)) +
+  geom_histogram()
+
+ggplot(dt4, aes(x=LEZU)) +
+  geom_histogram() +
+  facet_wrap(vars(urlaub.f))
+
+
+dt4 %>% filter(!is.na(urlaub.f)) %>% 
+ggplot(aes(x=LEZU)) +
+  geom_histogram(binwidth=1, color='white') +
+  facet_wrap(vars(urlaub.f), nrow=3) 
+
+```
+
+# 1. Stellen Sie in zwei Diagrammen (eins für Männer, eins für Frauen) den Zusammenhang zwischen urlaub.f und BF_Gew (o. BF_Ext) mithilfe von Boxplots dar.
+```{r}
+dt4 %>% 
+  filter(geschl.f %in% c('w', 'm')) %>% 
+  ggplot(aes(x=urlaub.f, y=BF_Ext)) +
+  geom_boxplot(aes(color=geschl.f)) +
+  facet_wrap(vars(geschl.f))
+
+```
+
+# 2. Erstellen Sie das nächste Diagramm nur für die weiblichen Studierenden. Ihre Grafik soll aus zwei "geoms" bestehen: Fügen Sie zuerst Boxplots, aufgeteilt nach geschl.f, für BF_Ext hinzu. Tauschen Sie anschließend die beiden Achsen mit coord_flip(). Erstellen Sie am Ende noch ein Histogramm für BF_Ext.
+```{r}
+dt4 %>% 
+  filter(geschl.f=='w') %>% 
+  ggplot() +
+  geom_boxplot(aes(x=geschl.f, y=BF_Ext)) + 
+  coord_flip() +
+  geom_histogram(aes(x=..density.., y=BF_Ext))
+
+```
+
+# FEINARBEIT:
+
+```{r}
+colors()
+```
+
+```{r}
+ggplot(dt4, aes(x=LEZU)) + 
+  geom_histogram(fill="firebrick4") #gerne verändern :)
+
+ggplot(dt4, aes(x=LEZU)) + 
+  geom_histogram(fill="#542178") #gerne verändern :)
+```
+
+# Wichtig: Wenn Sie zusätzlich Farben, Formen oder Ähnliches ändern möchten, was aber nicht von einer anderen Variable abhängig ist, sollten Sie die zugehörigen Argumente außerhalb der Aesthetics (aes()) spezifizieren!
+
+# Erstellen Sie ein (jittered) Punktediagramm zwischen bf_1 und bf_6. Die Punkte sollen keine Punkte sein, sondern dunkelblaue Dreiecke (shape=2) mit 50% Transparenz. Legen Sie eine hellpinke, gestrichelte (linetype="dashed") Regressionsgerade rein, die etwas zu breit ist, als dass es noch ästhetisch aussehen würde
+```{r}
+ggplot(dt4, aes(x=bf_1, y=bf_6)) + 
+  #geom_point() +
+  geom_jitter(shape=2, color='blue1', alpha=0.5) +
+  geom_smooth(method='lm', se=F, color='green', linetype='dashed', size=2)
+
+# Hint:
+ggplot(dt4, aes(x=bf_1, y=bf_6)) + 
+  geom_jitter(shape=2, color="darkblue", alpha=0.5) + 
+  geom_smooth(method="lm", se=F, color="lightpink", linetype="dashed", size=7)
+```
+
+```{r}
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) 
+
+ggplot(dt4, aes(x=mitschreiben.f, y=BF_Ext, fill=mitschreiben.f)) + 
+  geom_boxplot() 
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  scale_color_manual(values=c("#D45113", "#724CF9")) +
+  geom_jitter(size=2) 
+
+
+ggplot(dt4, aes(x=mitschreiben.f, y=BF_Ext, fill=mitschreiben.f)) + 
+  scale_fill_manual(values=c("#545863", "#00E8FC", "#F96E46", "#F9C846", "#FFE3E3")) +
+  geom_boxplot() 
+```
+
+# Themen (Hintergrund, Koordinatenachsen,...)
+```{r}
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) + 
+  labs(x= 'Big Five 1', color='Geschlecht') +
+  theme_minimal()
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) +
+  theme_dark()
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) +
+  theme_classic()
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) +
+  theme_bw()
+
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) + 
+  geom_jitter(size=2) +
+  theme_void()
+```
+
+
+# Beschriftungen
+
+# Ändern Sie in den zwei folgenden Grafiken den title, subtitle, caption und die Beschriftungen der x-Achse (x) und der y-Achse (y).
+```{r}
+ggplot(dt4, aes(x=bf_1, y=bf_6, color=geschl.f)) +
+  labs(title='bf_1 vs bf_6', 
+            subtitle='for fun', 
+            caption = '01/2023', 
+            x= 'BF1', 
+            y='BF6') + 
+  geom_jitter(size=2) +
+  theme_classic() +
+  scale_color_discrete(name="Geschlecht",
+                       breaks=c("w", "m"),
+                       labels=c("weiblich", "männlich")) 
+
+
+ggplot(dt4, aes(x=mitschreiben.f, y=BF_Ext, fill=mitschreiben.f)) + 
+  labs(title='mitschreiben.f vs BF_Ext', 
+            subtitle='why not', 
+            caption = '01/2023', 
+            x= 'BF1', 
+            y='BF6') + 
+  geom_boxplot() + 
+  theme_classic() +
+  guides(fill=FALSE)
+```
+
+
+# Raincloud Plot
+```{r}
+library(plyr)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+dt4 %>%
+  filter(!is.na(urlaub.f)) %>%
+  ggplot(aes(x=urlaub.f, y=LEZU, fill=urlaub.f)) + 
+  geom_flat_violin(position = position_nudge(x = .1)) + 
+  geom_boxplot(width=0.1, alpha=0.7) +
+  geom_jitter(width=0.05, alpha=0.7) + 
+  scale_y_continuous(breaks=1:7) +
+  scale_fill_manual(values=c("#62c2dc", "#FF5733", "#FFC300")) +
+  guides(fill=FALSE) +
+  labs(x="Lieblings-Urlaubsort", y="Lebenszufriedenheit", title="Mein erster eigener Plot", subtitle="Von mir erstellt") +
+  theme_classic() +
+  coord_flip() + 
+  annotate("text", 
+           x=1+0.2, 
+           y=mean(filter(dt4, urlaub.f=="Stadt")$LEZU), 
+           label=round(mean(filter(dt4, urlaub.f=="Stadt")$LEZU), 2)) + 
+  annotate("text", 
+           x=2+0.2, 
+           y=mean(filter(dt4, urlaub.f=="Berge")$LEZU), 
+           label=round(mean(filter(dt4, urlaub.f=="Berge")$LEZU), 2)) + 
+  annotate("text", 
+           x=3+0.2, 
+           y=mean(filter(dt4, urlaub.f=="Meer")$LEZU), 
+           label=round(mean(filter(dt4, urlaub.f=="Meer")$LEZU), 2)) 
+
+# ggsave speichert immer die zuletzt erstellte Grafik
+ggsave('raincloudplot.png', width=14, height=7)
+```
+
+# TRANSFER
+```{r}
+gm4 <- gapminder
+```
+
+# Aufgabe 1:
+```{r}
+
+ggplot(gapminder, aes(x=continent, y=..count../12, fill=continent)) + 
+  geom_bar() +
+  guides(fill=FALSE) + 
+  theme_classic() + 
+  labs(x="Kontinent", y="Anzahl Länder") +
+  coord_flip() 
+```
+
+# Aufgabe 2:
+```{r}
+ggplot(gapminder, aes(x=lifeExp, y=..density..)) +
+  geom_histogram(alpha=0.5) +
+  geom_density(alpha=0.7)
+
+
+ggplot(gapminder, aes(x=lifeExp, y=..density..)) + 
+  geom_histogram(color="black", fill="lightblue", alpha=0.5) +
+  geom_density(size=1.5, fill="yellow", alpha=0.2)  + 
+  theme_classic() +
+  labs(x="Lebenserwartung", y="Dichte") 
+```
+
+# Aufgabe 3:
+```{r}
+ggplot(gapminder, aes(x=lifeExp, y=..density.., fill=continent)) +
+  geom_density(alpha=0.5) +
+  facet_wrap(vars(continent))
+
+ggplot(gapminder, aes(x=lifeExp, fill=continent)) +
+  geom_density(alpha=0.3) +
+  theme_classic() + 
+  labs(x="Lebenserwartung", y="Dichte", fill="Kontinent")
+```
+
+# Aufgabe 4:
+```{r}
+gapminder %>% 
+  group_by(continent, year) %>% 
+  summarise(continent, year, median_lifeExp=median(lifeExp)) %>% 
+  ggplot(aes(x=year, y=median_lifeExp, color=continent)) +
+  geom_line() 
+  +facet_wrap(vars(continent))
+
+gapminder %>%
+  group_by(continent, year) %>%
+  summarise(LE_median=median(lifeExp)) %>%
+  ggplot(aes(x=year, y=LE_median, color=continent)) +
+  geom_line(size=1) + 
+  geom_point(size=1.5) + 
+  theme_classic() + 
+  labs(x="Jahr", y="Lebenserwartung", color="Kontinent")
+```
+
+# Aufgabe 5:
+```{r}
+gapminder %>% 
+  filter(continent %in% c('Asia', 'Africa') & year %in% c(1952, 2007)) %>% 
+  ggplot(aes(x=gdpPercap, y=lifeExp)) +
+  geom_point(aes(size=pop)) +
+  facet_wrap(continent~year, ncol=2)
+           
+  
+gapminder %>%
+  filter(year %in% c(1952, 2007), 
+         continent %in% c("Asia", "Africa")) %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp)) + 
+  geom_point(aes(size=pop)) + 
+  facet_wrap(continent~year) + 
+  scale_x_continuous(limits=c(0, 60000)) + 
+  theme_classic() + 
+  labs(x="Pro-Kopf-BIP", y="Lebenserwartung", size="Größe der \nBevölkerung")
+
+```

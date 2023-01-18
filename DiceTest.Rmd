@@ -1,0 +1,60 @@
+---
+title: "R Dice"
+output: html_notebook
+---
+
+# Funktionsdefinition und Plot zur Binomialverteilung
+```{r}
+bnp <- function(n, p, limit=TRUE) {
+
+k=c(1:n)
+bknp <- data.frame(k, 
+                   P=round(pbinom(k, n, p), digits = 5)) 
+if (limit) 
+  bknp <-filter(bknp, P >= 0.0001 & P<= 0.9999)
+
+plot(dbinom(0:n,n,p))
+plot(pbinom(0:n,n,p))
+bknp
+}
+
+bnp(10,0.50, F)
+bnp(600, 0.10)
+```
+
+H0: p = 1/6 
+H1: p > 1/6 
+a = 0.05
+```{r}
+p=1/6
+pdelta = 1/18
+n=600
+
+n6_obs <- vector()
+rounds = 100
+
+for (r in c(1:rounds)) {
+
+stichprobe <- data.frame(wurf=c(1:n), 
+                wuerfelzahl=sample(1:6, n, replace = T, prob = c(p-pdelta,p,p,p,p,p+pdelta)))
+count6 <- filter(stichprobe, wuerfelzahl == 6)
+
+
+alle_wuerfe <- stichprobe %>% 
+  group_by(wuerfelzahl) %>% 
+  summarise(wuerfe=n(), P=wuerfe/n) %>% 
+  ungroup()
+
+
+alle_wuerfe
+n6 = as.numeric(alle_wuerfe[6,2])
+n6_obs <- append(n6_obs, n6)
+p6 = as.numeric(alle_wuerfe[6,3])
+}
+
+n6_obs
+beta = length(n6_obs[n6_obs<115]) / length(n6_obs) 
+beta
+
+bnp(n, p)
+```

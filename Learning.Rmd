@@ -1,0 +1,83 @@
+---
+title: "Learning"
+author: OTA
+output: html_notebook
+---
+
+```{r}
+load("data.rda")
+rm(data)
+```
+
+
+# Text 	Überschrift erster Ordnung
+## Text 	Überschrift zweiter Ordnung
+**Text** 	Fettgedruckter Text
+*Text* 	Kursivgedruckter Text
+[Text](www.example.com) 	Hyperlink zu example.com, dargestellt als ‘Text’
+
+---
+
+**Wichtige Befehle**
+
+glimpse
+str
+objects -> Anzeige alphabetisch
+names oder colnames -> Anzeige wie im Datensatz
+summary
+table
+skim
+describe
+describeBy
+distinct -> select only unique rows from a data frame
+
+*Tips*
+Median > Mean -> RECHTSSTEIL
+Median < Mean -> LINKSSTEIL
+
+factor(c(0,1,1,0),
+       levels = c(0,1),
+       labels = c("red", "other"))
+
+
+---
+
+```{r}
+dl <- data.frame(player = c('a', 'b', 'c', 'd', 'e'),
+                 position = c('G', 'F', 'F', 'G', 'G'),
+                 points = c(12, 15, 19, 22, 32),
+                 rebounds = c(5, 7, 7, 12, 11))
+
+```
+
+# WIDE -> LONG
+```{r}
+pivot_longer(
+  dl,
+  cols = c('points'),
+  names_to = "Messzeitpunkt",
+  values_to = "punkte"
+)
+```
+
+
+
+```{r}
+summarise(dl, avg=mean(c(points,rebounds)))
+```
+
+```{r}
+square <- function(x){
+squared <- x*x
+return(squared)
+}
+```
+
+```{r}
+dl %>%
+  group_by() %>% 
+  summarise(m = mean(dl$points))
+
+```
+
+

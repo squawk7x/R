@@ -1,0 +1,82 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+names(corona_neu)
+nrow(corona_neu)
+length(corona_neu)
+```
+```{r}
+anyNA(corona_neu)
+```
+```{r}
+cn<- rename(corona_neu, sex=Geschl) %>% rename(age=Alter)
+```
+```{r}
+glimpse(cn)
+```
+
+
+```{r}
+for(i in cn){
+  print(typeof(i))
+}
+
+```
+```{r}
+c=0
+f=0
+n=0
+
+for(i in cn){
+  print(class(i))
+  if (class(i) == 'character'){c=c+1}
+  if (class(i) == 'numeric'){n=n+1}
+  if (class(i) == 'factor'){f=f+1}
+}
+
+message("character: ", c)
+message("numeric: ", n)
+message("factor: ", f)
+
+```
+```{r}
+cn_e_d<-select(cn,c('id','big5_0102','big5_0108', 'big5_0112', 'DA01_03',  'DA01_05', 'DA01_10', 'DA01_13', 'DA01_16', 'DA01_17', 'DA01_21'))
+
+```
+
+```{r}
+cn_e_d$big5_0112.f<- 8-cn_e_d$big5_0112
+```
+
+```{r}
+cn_e_d$mean_ev<- rowMeans(cn_e_d[ ,c(2,3,12)], na.rm = TRUE)
+```
+
+
+```{r}
+cn_e_d$mean_dep<- rowMeans(cn_e_d[ ,5:11], na.rm = TRUE)
+```
+
+```{r}
+mean(cn_e_d$mean_dep, na.rm=TRUE)
+```
+```{r}
+#Zeile 1 und Spalten 2+3 anzeigen:
+cn_e_d[1,c(2,3)]
+
+```
+
+```{r}
+sapply(cn, class)
+
+```
+
+
+

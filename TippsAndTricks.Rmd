@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Autocompletion
+Tab
+SHIFT + Tab
+
+# Snippets
+Tools - Global Options - Code - Snippets
+
+# Command History in Console
+STRG + Up
+
+# Find 
+STRG + .
+
+# Find in Files
+STRG + SHIFT + f
+
+# Auto-complete file path
+Tab completes from within the quotes ""
+try: "~/ (Tab)"
+
+# List of all open Tabs
+STRG + SHIFT + .
+
+# Keyboard Shortcuts
+ALT + SHIFT + k
+
+```{r}
+
+"~/"
+```
+

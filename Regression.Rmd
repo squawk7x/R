@@ -1,0 +1,87 @@
+---
+title: "Regression"
+output: html_notebook
+---
+
+
+Multiples Regressionsmodell:
+yt = a0*xt0 + a1*xt1 + ... + a(n-1)*xt(n-1) + ut, wobei xt0=1
+
+... in Matrixschreibweise:
+y  = a*X + u
+
+
+y : abhängige Variablen
+x : unabhängige Variablen
+u : Fehlervariablen
+
+â : Schätzwerte für a
+ŷ : Schätzwerte für y 
+û : Schätzwerte für u
+```{r}
+
+# Zufallswerte y erzeugen
+n <- 30
+y <- as.matrix(runif(n, 0, n/10)) + (n/10)*c(1:n) + rnorm(n,0, sqrt(n))
+cat('\n--------------- y ---------------\n')
+y
+
+# X erzeugen (hier ist x1 eine Zeitreihe)
+x0 <- rep(1, n)  # c(1,1,1,1,1,1,1,1,1, 1)
+x1 <- c(1:n)     # c(1,2,3,4,5,6,7,8,9,10)
+#x2 <- c(4,7,3,5,6,7,8,1,7,2)
+
+X <- matrix(as.vector(x0))
+X <- cbind(X, as.vector(x1))
+#X <- cbind(X, as.vector(x2))
+
+cat('\n--------------- X ---------------\n')
+X
+
+# â = (X'X)t * X'y
+â <- solve(t(X)%*%X)%*%t(X)%*%y
+
+cat('\n--------------- â ---------------\n')
+â
+
+ŷ <- X %*% â
+cat('\n--------------- ŷ ---------------\n')
+ŷ
+
+û <- y - ŷ
+cat('\n--------------- û ---------------\n')
+û
+
+ggplot(NULL, aes(x=x1, y=y)) +
+  xlim(0, max(x1) + 1) +
+  ylim(0, max(y) + 1) +
+  geom_point() +
+  geom_smooth(method='lm', na.rm = T) +
+  geom_point(aes(x=x1, y=ŷ), col = 'green') + 
+  xlab(label = 'x1 Werte') +
+  ylab(label = 'y Werte') + 
+  theme_classic()
+
+# Berechnungen über lm:
+l_m <- lm(y ~ x1)
+
+cat('\n--------------- lm ---------------\n')
+l_m
+
+cat('\n--------------summary-------------\n')
+summary(l_m)
+cat('\n--------------confint-------------\n')
+confint(l_m)
+cat('\n--------------fitted--------------\n')
+fitted(l_m)
+cat('\n---------------resid--------------\n')
+resid(l_m)
+cat('\n--------------predict-------------\n')
+predict(l_m)
+cat('\n---------------anova--------------\n')
+anova(l_m)
+cat('\n---------------plot---------------\n')
+#plot(l_m)
+
+```
+

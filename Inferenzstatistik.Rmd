@@ -1,0 +1,403 @@
+---
+title: "R Inferenzstatistik"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+# einfache Stichprobe:
+
+     Ziehen mit Zurücklegen
+     
+
+# akzeptabel auch bei 'Ziehen ohne Zurücklegen', falls:
+
+     n/N <= 0.05
+
+# Varianz/Standardabweichung der Grundgesamtheit:
+
+           1 
+     σ² = --- sum(xi-μ)^2       
+           N
+     
+     σ  = sqrt(sum(xi-μ)^2/  N)
+
+# Varianz/Standardabweichung einer Stichprobe:
+
+             1
+    sx² = ------- sum(xi-ẋ)²
+           n - 1
+
+    sx  = sqrt(sum(xi-ẋ)²/(n-1))
+
+# Stichprobenkennwerteverteilung:
+
+# Bei n durchgeführten Stichproben (der Größe m):
+
+    x1 = (x11, x12, ..., x1m) -> ẋ1, σ1² bzw. sx1²
+    x2 = (x21, x22, ..., x2m) -> ẋ2, σ2² bzw. sx2²
+    ...
+    xn = (xn1, xk2, ..., xnm) -> ẋn, σn² bzw. sxn²
+
+               1    
+    ->   ẋk = --- sum(xk1, xk2, ..., xkm)  k = 1...n
+               m
+             
+       E(ẋ) = μ
+
+# X = Stichprobe der 'Mittelwerte xk': k = 1..n
+
+      X = (ẋ1, ẋ2, ẋ3, ..., ẋn)
+
+# Wie ist X verteilt?
+
+# Erwartungswert :
+
+           1    
+
+-\> ẋ = --- sum(ẋ1, ẋ2, ẋ3, ..., ẋn) n
+
+    E(ẋ) = μ
+
+# Varianz:
+
+    Berechnung der Varianz/SD von X aus (ẋ1, ẋ2, ẋ3, ..., ẋn):
+              1
+    VAR(X) = --- sum (ẋi -ẋ)²    i = 1..n
+              n 
+              
+    oder so ???--->
+
+    Varianzen  σ² = (σ1², σ1², σ3², ..., σn²) 
+
+                     1
+            -> σ² = --- sum(σ1², σ1², σ3², ..., σn²)
+                     n 
+    <--- ???
+
+# Standardabweichnung:
+
+# Die Stichprobenverteilung des standardisierten Stichprobenmittels
+
+            ẋ − μ
+           -------
+            σ/√n
+             
+
+# ist die Standard--Normalverteilung N (0, 1).
+
+# Die Stichprobenmittelwerte sind
+
+          X ~ N((ẋ, σ/√n))
+
+# verteilt.
+
+# Setup Chunk
+
+# Funktionsdefinition und Plot zur Binomialverteilung
+
+```{r}
+
+library(dplyr)
+
+bnp <- function(n, p, limit=TRUE) {
+
+k=c(1:n)
+bknp <- data.frame(k, 
+                   P=round(pbinom(k, n, p), digits = 5)) 
+if (limit) 
+  bknp <-filter(bknp, P >= 0.0001 & P<= 0.9999)
+
+plot(dbinom(0:n,n,p))
+plot(pbinom(0:n,n,p))
+bknp
+}
+
+bnp(10,0.50, F)
+bnp(600, 0.10)
+```
+
+# Beispiel 1:
+
+# Der Statistiker Ronald Fisher erzählte 1919 folgende (wohl wahre) Geschichte von Muriel Bristolt:
+
+# Die Dame behauptete am Geschmack eines Tees feststellen zu können, welche Flüssigkeit zuerst eingegossen wurde. Er fragte sich, wie viele Tassen Tee die Dame richtig raten müsse, damit man ihr glauben kann. (hier: Versuch mit n=8 Tassen)
+
+# H0: Die Dame rät (p = 0.5)
+
+# H1: Die Dame hat die Fähigkeit (p \> 0.5)
+
+```{r}
+
+n = 8
+p = 0.5
+z = 6
+a = 0.05
+
+
+bnp(8, 0.5, F)
+# Annahmebereich für H0:     [0; 5] 
+# Ablehnungsbereich für H0:           [6; 8]
+
+binom.test(z, n, p, alternative = 'g', conf.level = (1-a))
+# Annahmebereich für H0:     [0; 6] 
+# Ablehnungsbereich für H0:           [7; 8]
+```
+
+# Beispiel 2:
+
+# Für eine beliebte Fernsehsendung eines Regionalsenders ist eine Einschaltquote von 60 % ermittelt worden. Aufgrund eines Moderatorenwechsels vermutet man, dass sich diese Quote verändert haben könnte. Bei einer Befragung mittels TED („Teledialog") äußern 96 von 200 zufällig ausgewählten Fernsehzuschauern, dass sie die Fernsehsendung regelmäßig sehen. Es soll untersucht werden, ob aus dem Befragungsergebnis (auf dem Signifikanzniveau α=0,01) geschlussfolgert werden darf, dass sich die Einschaltquote verändert hat.
+
+H0: p = 0.6 H1: p ≠ 0.6
+
+```{r}
+
+p = 0.6
+n = 200
+z = 138
+a = 0.01
+
+
+bnp(200, 0.6)
+# Annahmebereich für H0               [102; 137]
+# Ablehnungsbereich für H0  [0; 101]      ∪       [138; 200]
+
+binom.test(z, n, p, alternative = 'two.sided', conf.level = (1-a))
+# Annahmebereich für H0               [102; 137]
+# Ablehnungsbereich für H0  [0; 101]      ∪       [138; 200]
+
+```
+
+# Beispiel 3:
+
+# Ein Supermarkt einer Kleinstadt gibt in einem Werbematerial an, dass mindestens 75 % aller Kunden, die Waschmittel kaufen, die preisgünstige Marke „Tiefenrein" wählen. Von einer Mitarbeiterin der Verbraucherschutzzentrale werden 100 Kunden des Supermarktes, die Waschmittel gekauft haben, nach dem Zufallsprinzip befragt. 58 Kunden geben an, die Marke „Tiefenrein" gekauft zu haben. Es ist zu untersuchen, ob (auf dem Signifikanzniveau α=0,05) geschlussfolgert werden darf, dass die Angabe im Werbematerial übertrieben hoch ist.
+
+# Da man eine zu hohe Prozentangabe vermutet, wird ein (einseitiger) linksseitiger Signifikanztest konstruiert (denn beschreibt die Zufallsgröße X die Anzahl der Käufer des Waschmittels „Tiefenrein", so sprechen kleine Werte von X gegen die Nullhypothese).
+
+H0: p = 0.75 H1: p \<= 0.75
+
+```{r}
+
+p = 0.75
+n = 100
+z = 67
+a = 0.05
+
+
+bnp(100, 0.75)
+# Annahmebereich für H0:                [68; 100]
+# Ablehnungsbereich für H0:  [0; 67]
+
+binom.test(z, n, p, alternative = 'l', conf.level = (1-a))
+# Annahmebereich für H0:                [68; 100]
+# Ablehnungsbereich für H0:  [0; 67]
+```
+
+H0: p = 0.75 H1: p != 0.75
+
+```{r}
+p = 0.75
+n = 100
+z = 84
+a = 0.05
+
+bnp(100, 0.75)
+# Annahmebereich für H0:               [66; 82]
+# Ablehnungsbereich für H0: [ 0;  65]            [83; 100]
+
+binom.test(z, n, p, alternative = 'two.sided', conf.level = (1-a))
+# Annahmebereich für H0:               [66; 83]
+# Ablehnungsbereich für H0: [ 0;  66]            [84; 100]
+
+```
+
+# Der Schreibwarenhändler und der Lieferant beschließen die nächste Lieferung anhand einer Stichprobe von 100 Textmarkern auf dem Signifikanzniveau 5% zu testen.
+
+# Textmarker 1
+
+# aus Sicht des Schreibwarenhändlers
+
+H0: p = 0.20 H1: p \<= 0.20
+
+```{r}
+
+p = 0.2
+n = 100
+z = 14
+a = 0.05
+
+bnp(100, 0.2)
+# Annahmebereich für H0:              [14;  100]
+# Ablehnungsbereich für H0: [0; 13]
+
+binom.test(z, n, p, alternative = 'l', conf.level = (1-a))
+# Annahmebereich für H0:              [14;  100]
+# Ablehnungsbereich für H0: [0; 13]
+```
+
+# Textmarker 2
+
+# aus Sicht des Lieferanten:
+
+H0: p = 0.20 H1: p \>= 0.20
+
+```{r}
+
+p = 0.2
+n = 100
+z = 27
+a = 0.05
+
+bnp(100, 0.2)
+# Annahmebereich für H0     [ 0;  26]
+# Ablehnungsbereich für H0              [27; 100]
+
+binom.test(z, n, p, alternative = 'g', conf.level = (1-a))
+# Annahmebereich für H0     [ 0;  27]
+# Ablehnungsbereich für H0              [28; 100]
+```
+
+# Textmarker 3
+
+H0: p = 0.20 H1: p! = 0.20
+
+```{r}
+
+p=0.2
+n=100
+z=28
+a=0.05
+
+bnp(100, 0.2)
+# Annahmebereich für H0:                [12; 27]
+# Ablehnungsbereich für H0:  [  0; 11]     ∪      [28; 100]
+
+binom.test(z, n, p, alternative = 't', conf.level = (1-a))
+# Annahmebereich für H0:                [13; 28]
+# Ablehnungsbereich für H0:  [  0; 12]     ∪      [29; 100]
+```
+
+# Würfel 1
+
+H0: p = 1/6 H1: p != 1/6
+
+```{r}
+
+n = 6
+p = 1/6
+z = 3
+a = 0.10
+
+bnp(6, 1/6, F)
+# Annahmebereich für H0     {0, 1}                # Musterlösung: {0, 1, 2}
+# Ablehnungsbereich für H0          {2, 3, 4, 5, 6}
+
+binom.test(z, n, p, alternative = 't', conf.level = (1-a))
+# Annahmebereich für H0     {0, 1, 2} 
+# Ablehnungsbereich für H0             {3, 4, 5, 6}
+```
+
+# Würfel 2 (linksseitiger Test)
+
+H0: p = 1/6 H1: p \< 1/6
+
+```{r}
+
+n = 300
+p = 1/6
+z = 39
+a = 0.05
+
+bnp(300, 1/6)
+# Annahmebereich für H0              [40, 300]
+# Ablehnungsbereich für H0  [0 ;39]
+
+binom.test(z, n, p, alternative = 'l', conf.level = (1-a))
+# Annahmebereich für H0              [40, 300]
+# Ablehnungsbereich für H0  [0 ;39]
+```
+
+# FEHLERWAHRSCHEINLICHKEITEN
+
+                         wahr ist
+                        H0      H1
+
+Entscheidung H0 F.2.A. für H1 F.1.A.
+
+# Beispiel 1
+
+# Eine Pharma-Herstellerin hat viele Jahre an einem neuen Medikament geforscht. Nun möchte sie natürlich auch wissen, wie wirksam es ist. Wo findet sie eine Antwort auf diese Frage?
+
+# Das beste vergleichbare Medikament wirkt in 40% der Fälle. Die Pharma-Herstellerin geht natürlich davon aus, dass ihr Medikament noch häufiger wirkt und legt die Hypothese fest: Mein Medikament ist noch wirksamer (H1). Dazu werden 50 Probanden ausgewählt und sie sagt:
+
+# Wenn das Medikament bei weniger oder gleich 25 Probanden wirkt, dann ist mein Medikament nur genauso gut wie das alte.
+
+# Wenn das Medikament bei mehr als 25 Probanden wirkt, dann ist mein Medikament besser als das alte.
+
+# Wir stellen uns nun die entscheidende Frage: Wie hoch ist die Wahrscheinlichkeit, dass die Pharma-Herstellerin ihr Medikament für besser hält, obwohl es nicht besser ist?
+
+H0: p = 0.40 H1: p \> 0.40
+
+# Wir halten noch die Entscheidungsregel fest:
+
+X \<= 25 , dann H0 X \> 25 , dann H1
+
+```{r}
+n = 50
+p = 0.40
+
+bnp(50, 0.40)
+```
+
+Fehler 1. Art: P(X\>25) = 1 -P(X\<=25) = 1 - 0.9427 = 0,573
+
+Fehler 2. Art: hängt von der tatsächlichen Wirksamkeit des Medikaments ab (p ist größer als 0.4)
+
+P(X\<=25, p=0.50) -\> 55.61% P(X\<=25, p=0.60) -\> 9.78% P(X\<=25, p=0.70) -\> 0.24%
+
+```{r}
+bnp(50, 0.5)
+bnp(50, 0.6)
+bnp(50, 0.7)
+```
+
+# Beispiel 2
+
+# Er fragt sich, ob die 2-Euro-Münze fair ist: Dann müsste sie bei vielen Münzwürfen etwa gleich häufig „Kopf" und „Zahl" anzeigen. Er will n=100 Mal werfen. Er formuliert die Nullhypothese H0: Die Münze ist fair: p=0,5 und die Gegenhypothese H1: Die Münze ist nicht fair: p≠0,5.
+
+# Er legt sich vorher fest: Weicht die Anzahl an „Kopf"-Würfen um 8 oder mehr vom Erwartungswert 50 ab, so nehme ich an, dass die Münze nicht fair ist.
+
+H0: p = 0.50 H1: p!= 0.50
+
+# Entscheidungsregel:
+
+X in [43, 57] , dann H0, sonst H1
+
+```{r}
+n = 100
+p = 0.50
+
+
+# Signifikanzniveau:
+# P(X<43)  +    P(X>57)
+# P(X<=42) + (1 - P(X<=57))
+pbinom(42, 100, 0.5) + (1 - pbinom(57, 100, 0.5))
+```
+
+H0: p = 0.50 H1: p!= 0.50
+
+```{r}
+
+n = 100
+p = 0.50
+z = 59
+a = 0.05
+
+bnp(100, 0.50)
+# Annahmebereich für H0:             [40, 59]
+# Ablehnungsbereich für Ho: [0, 39]            [60, 100] 
+
+binom.test(z, n, p, alternative = 't', conf.level = (1-a))
+# Annahmebereich für H0:             [40, 59]
+# Ablehnungsbereich für Ho: [0, 39]            [60, 100] 
+```

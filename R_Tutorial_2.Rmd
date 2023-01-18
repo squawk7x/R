@@ -1,0 +1,392 @@
+---
+title: "R-Tutorial 2"
+output: html_notebook
+---
+
+# Video 1
+# ÜBERSICHTSFUNKTIONEN:
+```{r}
+load("data.rda")
+save(data, file="dt.rda")
+#View(data)
+cat('\n','glimpse(data):', '\n')
+glimpse(data)
+cat('\n','str(data):', '\n')
+str(data)
+cat('\n','objects(data):', '\n')
+objects(data)
+cat('\n','names(data):', '\n')
+names(data)
+cat('\n','colnames(data):', '\n')
+colnames(data)
+cat('\n','summary(data):', '\n')
+summary(data)
+cat('\n','class(data):', '\n')
+class(data)
+
+cat('\n','table(data$X):', '\n')
+table(dt4$geschl.f)
+
+cat('\n','Kreuztabelle data$X~data$Y):', '\n')
+table(dt4$geschl.f, dt4$urlaub.f)
+
+round(100*prop.table(table(dt4$geschl.f, dt4$urlaub.f)), digits=4)
+
+```
+
+# Video 2
+#DATENTYPEN:
+```{r}
+#character
+ein_zeichen<-'x'
+ein_anderes_zeichen<-'y'
+
+#logical
+wahr=TRUE
+falsch=FALSE
+
+#numeric (integer, double)
+zahl=1965
+
+#factor
+haarfarbe.f<-factor(c(0,1,1,0),
+                    levels=(c(0,1)),
+                    labels=c('red', 'other')
+                    )
+
+#data.frame
+meine_Daten <- data.frame(Seriennummer = c('A3B214', 'B7K365', 'C0L671', 'D9P321'),
+                          Zufriedenheit = c(5, 3, 4,2),
+                          Geschlecht = c(0, 1, 1,0),
+                          Haarfarbe = c(0,1,1,0)
+                          )
+
+summary(meine_Daten)
+class(meine_Daten)
+
+```
+
+
+```{r}
+dt <- data
+
+dt$geschl.f <- factor(data$geschl,
+                       levels = c(1,2,3),
+                       labels = c('w', 'm', 'd')
+                      )
+
+dt$mitschreiben.f <- factor(data$mitschreiben,
+                       levels = 1:5,
+                       labels = c('Block', 'Ausdruck', 'Laptop', 'Tablet', 'keine')
+)
+                      
+dt$urlaub.f <- factor(data$urlaub,
+                       levels = c(1,2,3),
+                       labels = c('Stadt', 'Berge', 'Meer')
+)
+  
+# data.frame anzeigen:  
+dt
+
+class(dt$geschl)
+summary(dt$geschl)
+levels(dt$geschl)
+
+class(dt$geschl.f)
+summary(dt$geschl.f)
+levels(dt$geschl.f)
+
+# Faktor -> numerische Variable:
+# as.numeric()
+# Rückwandlung in numerisch fängt immer bei '1' an!
+dt$urlaub <- as.numeric(dt$urlaub.f) 
+class(dt$urlaub)
+dt$urlaub
+```
+
+# BASE R
+# [ZEILEN, SPALTEN]
+```{r}
+dt0 <- dt 
+dt0 <- dt[,]
+dt0 <- dt[, c(1:39)]
+
+dt0S1 <- dt0[,-c(2:39)]
+dt0S1
+dt0S2 <- dt0[,2]
+dt0S2
+
+dt0Z2 <- dt0[2,]
+dt0Z2
+#ungerade Zeilennummer
+dt0Zu <- dt0[-seq(1,142, by=2),]
+dt0Zu                          
+```
+
+# Video 3
+# DPLYR
+# logical --> integer --> numeric --> character
+```{r}
+library(dplyr)
+
+select(dt, mitschreiben.f)
+select(dt, -c(mitschreiben, mitschreiben.f))
+select(dt, contains('bf'))
+dt_ohne_bf <- select(dt, -contains('bf'))
+
+
+filter(dt, mitschreiben.f == 'Ausdruck')
+tablet_leute <- filter(dt, mitschreiben.f == 'Tablet')
+
+mean(dt$lezu_1, na.rm=T)
+
+# Logische Verknüpfungen:
+# & | %in% == != > < <= >=
+filter(dt, bf_4 == 2 & geschl.f == 'w') #  
+
+# FALSCH:
+# filter(dt, mitschreiben.f == 'Ausdruck' | 'Tablet')
+
+# Abbrecher entfernen (haben letzte Frage nicht beantwortet)
+filter(dt, !is.na(urlaub))
+
+# recode:
+# 1. Möglichkeit:
+data$bf_4.r1 = (1+5) - data$bf_4
+
+# 2. Möglichkeit:
+data$bf_4.r2 = recode(data$bf_4,
+                      '1' = 5,
+                      '2' = 4,
+                      '3' = 3,
+                      '4' = 2,
+                      '5' =1)
+select(data, bf_4, bf_4.r1, bf_4.r2)
+
+# Umbenennen: 
+# (NEUER NAME = ALTER NAME)
+rename(data, ID = Nr, big_five_5 = bf_5)
+
+# select kann gleichzeitig auch umbenennen:
+select(data, ID = Nr, big_five_1 = bf_1)
+```
+
+# starts_with, ends_with, contains:
+```{r}
+select(data, c(geschl, mitschreiben, urlaub))
+select(data, starts_with('lezu'))
+select(data, ends_with('_5'))
+select(data, contains('bf'))
+```
+
+# 1. Wählen Sie nur die Variablen gender, mitschreiben und urlaub aus.
+```{r}
+select(dt, c(geschl, mitschreiben, urlaub))
+
+```
+
+# 2. Löschen Sie die Variable lezu aus dem Datensatz.
+```{r}
+# mit R:
+data[, -c(22:26)]
+
+# mit dplyr/select:
+select(data, -contains('lezu'))
+
+```
+
+# 3. Wählen Sie jeweils nur das erste Item jeder Skala (bf, prok , lezu) aus.
+```{r}
+select(data, ends_with('_1'))
+```
+
+# 4. Datensatz soll nur die drei Skalen beinhalten
+```{r}
+select(data, starts_with("bf"), starts_with("prok"), starts_with("lezu"))
+```
+
+# filter
+# 1. Wählen Sie nur die Personen aus, die auf der Variablen prok_10 mindestens den Wert 3 haben.
+```{r}
+data$urlaub.f <- factor(data$urlaub, levels = 1:3, labels = c("Stadt", "Berge", "Meer"))
+filter(data, prok_10 >= 3)
+```
+# 2. Löschen Sie die Personen aus dem Datensatz, die als Lieblingsurlaubsort “Stadt” gewählt haben. 
+```{r}
+filter(data, urlaub == 1)
+```
+
+# 3. Wählen Sie die Fälle im Datensatz aus, deren Lieblingsort “Berge” sind und die bei dem Item lezu_4 mindestens den Wert 6 ausgewählt haben. 
+```{r}
+filter(data, urlaub == 2 & lezu_4 >= 6)
+```
+
+# 4. Wählen Sie die Fälle im Datensatz aus, deren Lieblingsort “Berge” sind oder (einschließendes Oder!) die bei dem Item lezu_4 mindestens den Wert 6 ausgewählt haben. 
+```{r}
+filter(data, urlaub == 2 | lezu_4 >= 6)
+```
+
+# 5. Löschen Sie alle Personen aus dem Datensatz, die fehlende Werte auf der Variablen bf_5 haben.
+```{r}
+filter(data, !is.na(bf_5))
+```
+
+# VARIABLEN UMPOLEN:
+```{r}
+# 1. Methode:
+data$prok_2.r1 = (4+1) - data$prok_2
+
+# 2. Methode:
+data$prok_2.r2 = recode(data$prok_2,
+                      '1' = 4,
+                      '2' = 3,
+                      '3' = 2,
+                      '4' = 1)
+select(data, prok_2, prok_2.r1, prok_2.r2)
+
+```
+# VARIABLEN UMBENENNEN:
+```{r}
+dt1 <- rename(data, geschlecht = geschl, lieblingsort = urlaub)
+names(dt1)
+```
+
+# TIDYR
+tidyr::pivot_longer(
+  data,
+  cols,
+  names_to = "name",
+  values_to = "value",
+  ...
+)
+# WIDE -> LONG
+```{r}
+data_wide <- select(data, Nr, lezu_1:lezu_5)
+
+data_long <- pivot_longer(data_wide, 
+                          cols=c("lezu_1", "lezu_2", "lezu_3", "lezu_4", "lezu_5"),
+                          names_to = "Messzeitpunkt", 
+                          values_to = "Lebenszufriedenheit")
+```
+
+# LONG -> WIDE
+```{r}
+data_wide <- pivot_wider(data_long, 
+                         id_cols=c("Nr"),
+                         names_from=c("Messzeitpunkt"),
+                         values_from=c("Lebenszufriedenheit"))
+
+
+```
+
+# LONG DATA:
+```{r}
+dt_l <- data.frame(ID = c(1,2,3,1,2,3,1,2,3),
+                 MZP = c(1,1,1,2,2,2,3,3,3),
+                 Werte = c(5,3,6,4,2,7,4,2,6)
+                 )
+
+```
+
+# LONG -> WIDE
+```{r}
+
+```
+
+# WIDE -> LONG
+```{r}
+
+```
+
+# VERKNÜFUNGSOPERATOR %>% (CTRL+SHIFT+M)
+```{r}
+# Zwischenschritt -> Verschachteln -> Verketten (%>%)
+# Die Pipe fügt Ihren Datensatz immer als erstes Argument in die folgende Funktion ein. 
+
+```
+
+
+# 1. AUFGABE
+```{r}
+# 1. Aus wievielen Variablen und Fällen besteht der Datensatz?
+
+# 2. Aus welchen Datentypen bestehen die Variablen und welche Bedeutung haben die Variablen?
+
+# 3. Liegt der Datensatz im long- oder wide-Format vor?
+```
+
+```{r}
+gm<-gapminder
+library(dplyr)
+
+```
+
+```{r}
+gm_countries <- gm %>% distinct(country)
+gm_countries
+nrow(gm_countries)
+```
+
+# 2. AUFGABE
+```{r}
+# 1. Eventuell: Benennen Sie die Variablen so um, wie es für Sie gut passt.
+gm = rename(gm, BIP = gdpPercap)
+
+```
+
+```{r}
+# 2. Eventuell: Wählen Sie die benötigten Variablen aus.
+gm_BIP <- select(gm, c('country', 'year', 'BIP'))
+```
+
+```{r}
+# 3. Filtern Sie nach dem Land Deutschland.
+gm_BIP_D<-filter(gm_BIP, country=="Germany")
+```
+
+```{r}
+# 4. Berechnen Sie den Mittelwert des BIP für Deutschland über alle Jahre hinweg.
+mean(gm_BIP_D$BIP)
+
+```
+# 3. AUFGABE
+```{r}
+gm_Y_pop <- select(gm, country|year|pop)
+```
+
+
+```{r}
+gm_Y_pop_D_C_I<- filter(gm_Y_pop, country %in% c('Germany', 'India', 'China'))
+```
+
+```{r}
+gm_Y_pop_D<-filter(gm_Y_pop_D_C_I, country=='Germany')
+```
+
+
+```{r}
+library(tidyr)
+gm_Y_pop_D_wide<- pivot_wider(gm_Y_pop_D,
+                              id_cols=c('country'),
+                              names_from='year',
+                              values_from='pop'
+                              )
+
+gm_Y_pop_D_long<- pivot_longer(gm_Y_pop_D_wide,                            cols=c('1952','1957','1962','1967','1972','1977','1982','1987','1992','1997','2002','2007'), #cols=c(seq(1952,2002,5),'2007'),
+                               names_to='year',
+                               values_to='pop'
+                              )
+                               
+```
+
+```{r}
+gm_AFR_8k_1999<-filter(gm, continent=='Africa' & year<2000 & BIP>8000)
+```
+
+```{r}
+distinct(gm_AFR_8k_1999, country)
+```
+```{r}
+gm %>% filter(continent=='Africa' & year<2000 & BIP>8000) %>% distinct(country) %>% str
+```
+

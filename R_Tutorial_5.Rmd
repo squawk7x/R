@@ -1,0 +1,371 @@
+---
+title: "R-Tutorial 5"
+output: html_notebook
+---
+
+# Inferenzstatistik, 
+# Stichprobenumfangsplanung, 
+# Stichproben ziehen
+
+
+# EINFÜHRUNG
+
+# INFERENZSSTATISTIK
+# In der Inferenzstatistik wird versucht, die Nullhypothese (das Gegenteil von der eigentlichen These H1 oder HA) zu widerlegen.
+
+```{r}
+# -----------------------------------------------------------------------
+# qnorm(p) = z                  # Fläche links
+# qnorm(p) == -qnorm(1-p)       # Eselsbrücke QP (Coupé ;-)
+#------------------------------------------------------------------------
+qnorm(0.95)   # 1.645
+qnorm(0.05)   #-1.645
+qnorm(0.975)  # 1.96
+qnorm(0.025)  #-1.96
+
+#------------------------------------------------------------------------
+#   pnorm(z) =   p              # 'Fläche links'     # Eselsbrücke PiZza
+# 1-pnorm(z) = 1 - p            # 'Fläche rechts'
+#   pnorm(z) == 1 - pnorm(-z)
+#------------------------------------------------------------------------
+pnorm(1.645)  # 0.95
+pnorm(-1.645) # 0.05
+
+```
+# Beispiel: 
+# Die Intelligenz einer Bevölkerung ist normalverteilt N(100, 15)
+# (Signifikanzniveau a=0.05)
+# Test:
+# H0 Hypothese negiert NEGIERT den vermuteten Zusammenhang
+# H0: IQ von 131 ist NICHT höher als in der Allgemeinbevölkerung. 
+# H1: IQ von 131 ist       höher als in der Allgemeinbevölkerung. 
+```{r}
+# empirischer z-Wert
+z = (131-100)/15      # z ~ N(0/1) verteilt
+z
+
+# 1. Möglichkeit:
+pnorm(z)
+1-pnorm(z) 
+
+# 2. Möglichkeit:
+pnorm(z, lower.tail=FALSE)
+pnorm(z, lower.tail=TRUE)
+
+# ACHTUNG:
+# Bei zweiseitigem Test
+
+2* (1-pnorm(z))
+2* pnorm(-z)
+
+```
+# Dichte- u. Verteilfunktion der Standardnormalverteilung:
+```{r}
+q <- qnorm(0.95)
+
+ggplot(data.frame(x = c(-4,4)), aes(x = x)) +
+  labs(y = "dnorm(z) u. pnorm(z)", x = "z") +
+  scale_x_continuous(breaks = seq(-4, 4, 1), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0.5)) +
+  theme_classic() +
+  coord_cartesian(ylim = c(0, 0.5), clip="off") +
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), size = 1) +
+  stat_function(fun = dnorm, args = list(mean = 0, sd= 1), 
+                geom = "area", fill="blue",
+                xlim = c(-4, q),
+                alpha = 0.5) +
+  stat_function(fun = pnorm, args = list(mean = 0, sd = 1), size = 1) +
+  stat_function(fun = pnorm, args = list(mean = 0, sd= 1), 
+                geom = "area", fill="green",
+                xlim = c(-4, q),
+                alpha = 0.5) 
+  
+```
+
+```{r}
+p <- pnorm(0.05)
+
+ggplot(data.frame(x = c(-4,4)), aes(x = x)) +
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), size = 1) +
+  labs(y = "Dichtefunktion f(z)", x = "z") +
+  scale_x_continuous(breaks = seq(-4, 4, 1), expand=c(0,0)) +
+  scale_y_continuous(expand=c(0,0)) +
+  theme_classic() +
+  coord_cartesian(ylim = c(0, 0.5), clip="off") +
+  geom_segment(aes(x = qnorm(p), y = -0.02, xend = qnorm(p), yend = 0),
+                arrow = arrow(length = unit(0.1, "inches")), size = 0.5,
+                color = "#216EBD") +
+  annotate("text", x=qnorm(p), y=-0.03, label=round(qnorm(p), 2), color="#216EBD") +
+  stat_function(fun = dnorm, args = list(mean = 0, sd= 1), 
+                geom = "area", fill="#216EBD",
+                xlim = c(-4, qnorm(p))) +
+  annotate("text", x=0, y=0.45, label=expression(paste("H"[0]))) + 
+  geom_segment(aes(x=0, y=dnorm(0, 0, 1), xend=0, yend=0), linetype = "dashed") +
+  annotate("text", x=3, y=0.45, label="Fläche =") + 
+  annotate("text", x=3.7, y=0.45, label=round(p,2)) +
+  annotate("text", x=2.84, y=0.4, label="krit. z-Wert =") + 
+  annotate("text", x=3.7, y=0.4, label=round(qnorm(p),2))
+```
+
+# 1. Welchen Flächeninhalt schneidet ein z-Wert von 1 rechts von der Normalverteilung ab? 
+```{r}
+z <- 1
+p = 1 - pnorm(z)
+p
+# oder:
+pnorm(z, lower.tail = FALSE)
+```
+# 2. Wie groß ist der rechte kritische z-Wert, wenn links und rechts jeweils 10% der Normalverteilung abgeschnitten werden sollen? 
+```{r}
+z = qnorm(0.9)
+z
+pnorm(-z)
+pnorm(z)
+```
+# 3. Wie groß ist die Fläche links von einem kritischen z-Wert von -1.96?
+```{r}
+pnorm(-1.96)
+```
+# 4. Wie groß ist der linke kritische z-Wert, wenn zweiseitig auf einem 5% Alpha-Niveau getestet werden soll? 
+```{r}
+qnorm(0.025)
+```
+
+#5. Wie groß ist der linke(?) kritische z-Wert, wenn linksseitig auf einem 5% Alpha-Niveau getestet werden soll?
+```{r}
+qnorm(0.05)
+```
+# 6. 6. Wie groß ist die Fläche innerhalb eines z-Werts von -1 (-1 SD) und 1 (+1 SD)? 
+```{r}
+z <- 1
+pnorm(z) - pnorm(-z)
+```
+# POWERANALYSE
+
+#Sie haben ein neues Training zur Verbesserung des Arbeitsklimas entwickelt. Aus der Literatur ist Ihnen bekannt, dass bisherige Trainings lediglich einen kleinen Effekt von δ = 0.14 haben. Sie sind jedoch von Ihrem Training überzeugt: Sie nehmen einen mittleren Effekt von δ = 0.35 an und Sie testen einseitig.
+
+# H0: Das Training hat KEINEN Effekt (δ = 0.14)
+# H1: Das Training hat einen Effekt (δ > 0.14)
+
+# pwr.norm.test(d = NULL, n = NULL, sig.level = 0.05, power = NULL, alternative = c("two.sided","less","greater"))
+
+
+# 1. Wie viele Personen müssen Sie rekrutieren, wenn Sie eine Teststärke von .90 erreichen möchten?
+```{r}
+pwr.norm.test(d = 0.35, n = NULL, sig.level = 0.05, power = 0.9, alternative = c("greater"))
+```
+# 2. Wie viele Personen müssen Sie rekrutieren, wenn Sie auch mit einer Teststärke von .80 zufrieden wären?
+```{r}
+pwr.norm.test(d = 0.35, n = NULL, sig.level = 0.05, power = 0.8, alternative = c("greater"))
+```
+# 3. Wie viele Personen müssen Sie rekrutieren, wenn Sie zur Sicherheit von einem etwas kleineren Effekt von δ = 0.25 ausgehen (und einer Teststärke von .90)?
+```{r}
+pwr.norm.test(d = 0.25, n = NULL, sig.level = 0.05, power = 0.9, alternative = c("greater"))
+```
+# 4. Wie viele Personen müssen Sie rekrutieren, wenn Sie den Effekt wie in 3. spezifiziert doch lieber zweiseitig testen wollten?
+```{r}
+pwr.norm.test(d = 0.25, n = NULL, sig.level = 0.05, power = 0.9, alternative = c("two.sided"))
+```
+# Exkurs: Einstichproben-Gauß-Test
+
+# Studie: Sie haben ein Training erstellt, das die TeilnehmerInnen optimal auf einen bevorstehenden Intelligenztest vorbereiten soll. Intelligenz ist in der Population normalverteilt mit einem durchschnittlichen IQ von 100 und einer Standardabweichung von 15. Ihnen ist bewusst, dass Ihr Training nur dann erfolgreich sein kann, wenn es bei Ihren TeilnehmerInnen zu einer durchschnittlichen Verbesserung von mindestens einer halben Standardabweichung kommt.
+
+# Wie groß muss Ihre Stichprobe sein, wenn Sie anschließend Ihren Stichprobenmittelwert einseitig mit dem Populationsmittelwert vergleichen wollen und die Wahrscheinlichkeit für einen Alpha- bzw. einen Beta-Fehler 1% betragen soll?
+
+IQ ~ N(100/15)
+H0: KEINE Verbesserung (IQ = 100)
+H1:       Verbesserung (IQ > 100)
+```{r}
+# Effektberechnung (halbe SD)
+d = 15/2
+cat('Verbesserung um d = ', d, '\n')
+
+# rechtsseitiger Test:
+# 1 - pnorm(z)
+# pnorm(z, lower.tail = FALSE)
+
+
+pwr.norm.test(d = 0.5, n = NULL, sig.level = 0.01, power = 0.99, alternative = c("greater"))
+```
+# Sie haben nun 87 Personen trainiert und dann bei diesen einen Intelligenztest durchgeführt. Dabei haben Sie einen Stichprobenmittelwert von 105 berechnet. Nun fragen Sie sich, ob das denn auch wirklich signifikant von dem Populationsmittelwert von 100 abweicht. Berechnen Sie den empirischen z-Wert, den p-Wert und die Effektstärke d.
+
+# Hints:
+# Den EMPIRISCHEN z-Wert  berechnen Sie folgendermaßen:
+# z <- (Stichprobenmittelwert - Populationsmittelwert)
+#       /(Standardabweichung/sqrt(Stichprobengröße))
+
+
+# Den p-Wert berechnen Sie folgendermaßen:
+# p <- 1-pnorm(z)
+
+# Die Effektgröße d berechnen Sie folgendermaßen:
+# d <- (Stichprobenmittelwert - Populationsmittelwert)
+#       /Populationsstandardabweichung
+
+
+```{r}
+zemp = ((105 - 100) / 15) / sqrt(87)
+cat('empirischer z-Wert = ', zemp, '\n')
+
+p = 1 - pnorm(zemp)
+p
+pnorm(zemp, lower.tail = FALSE)
+
+d = (105 - 100) / 15
+d
+```
+# 1. Weicht der Stichprobenmittelwert signifikant (a=0.01) vom Populationsmittelwert ab?
+
+# H0: IQ unverändert (IQ = 100)
+# H1: IQ verbessert  (IQ > 100)
+```{r}
+a = 0.01
+zemp = ((105 - 100) / 15) / sqrt(87)
+
+cat('\nEntscheidung über z-Wert:\n')
+cat('empirischer z-Wert = ', zemp, '\n')
+zkrit = qnorm(1-a)
+cat('kritischer z-Wert =', zkrit, '\n')
+
+
+ifelse(z > zkrit, 'signifikant', 'nicht signifikant')
+
+cat('\nEntscheidung über P(z):\n')
+Pzemp = pnorm(zemp)
+cat('P(zemp) = ', Pzemp, '\n')
+Pzkrit = pnorm(zkrit)
+cat('P(zkrit) = ', Pzkrit, '\n')
+ifelse(Pzemp > Pzkrit, 'signifikant', 'nicht signifikant')
+```
+
+# BOOTSTRAPPING
+```{r}
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+library(moderndive)
+library(infer)
+
+#So sieht die Variable `lifeExp` anfangs aus:
+ggplot(gapminder, aes(x = lifeExp)) +
+   geom_histogram(bins = 10, color = "white")
+
+#Der Mittelwert der Variablen `lifeExp` beträgt:
+mean(gapminder$lifeExp)
+
+#Wir bilden die erste Bootstrap-Stichprobe der Größe 100 und lassen uns diese grafisch ausgeben:
+(bootstrap_sample1 <- gapminder %>% 
+  rep_sample_n(size = 1704, replace = TRUE, reps = 1))
+
+#Wir generieren 6 Bootstrap-Stichproben und lassen uns diese grafisch ausgeben. Dabei stellt die Variable `replicate` dar, die wievielte Stichprobe es ist.
+
+(six_bootstrap_samples <- gapminder %>%
+   rep_sample_n(size = 1704, replace = TRUE, reps = 6))
+
+ggplot(six_bootstrap_samples, aes(x = lifeExp)) +
+   geom_histogram(bins = 10, color = "white") +
+   facet_wrap(~ replicate)
+
+#Hier gruppieren wir nach der Variable `replicate` und lassen uns anschließend für alle sechs Stichproben den Mittelwert ausgeben:
+six_bootstrap_samples %>%
+  group_by(replicate) %>%
+  summarize(m = mean(lifeExp))
+
+#Das Paket infer bietet Funktionen an, mit denen das Bootstrapping vereinfacht werden soll. Die Funktion `specify()` legt fest, mit #welcher Variable wir arbeiten wollen und `generate()` generiert die Bootstrap-Stichproben.
+
+#Randnotiz: Bitte beachten Sie, dass der Datensatz 1.704.000 Fälle hat. In diesem Tutorial können nur höchstens 1000 Fälle angezeigt werden, d.h. wir befinden uns hier immern noch in der ersten Stichprobe!
+
+(thousand_bootstrap_samples <- gapminder %>%
+  specify(response = lifeExp) %>%
+  generate(reps = 1000))
+
+#Hier gruppieren wir wieder nach der Variable `replicate` und lassen uns anschließend für alle tausend Stichproben den Mittelwert und die Anzahl der Fälle pro Stichprobe ausgeben:
+(thousand_bootstrap_samples_m <- thousand_bootstrap_samples %>% 
+  group_by(replicate) %>%
+  summarize(m = mean(lifeExp),
+            n= n()))
+
+#Das folgende Histogramm zeigt alle Mittelwerte der Bootstrap-Stichproben sowie den Mittelwert aller Bootstrap-Stichproben (rot) und das Konfidenzintervall (blau):
+ggplot(thousand_bootstrap_samples_m, aes(x = m)) +
+  theme_classic() +
+  labs(x="Lebenserwartung", y="Häufigkeit", title="1000 Bootstrap-Stichproben") +
+  annotate("rect", 
+           xmin=quantile(thousand_bootstrap_samples_m$m, 0.025), 
+           xmax=quantile(thousand_bootstrap_samples_m$m, 0.975), 
+           ymin=0, ymax=300, fill="lightblue") +
+  geom_histogram(bins = 10, color = "white") + 
+  geom_vline(xintercept=mean(thousand_bootstrap_samples_m$m), color="red", size=2) 
+```
+
+
+# Exkurs: Konfidenzintervalle
+```{r}
+vars <- c(1,3,7,13,13,13,17,19,29,57)
+mean_cl_normal(vars, conf.int = 0.95, na.rm = TRUE)
+mean_cl_boot(vars, conf.int = 0.95, na.rm = TRUE)
+```
+
+# Bockrandomisierung
+
+# 1. Erstellung von Bedingungsblocks
+# 2. Jeder Block enthält alle experimentellen Bedingungen in einer Zufallsfolge
+# 3. Zufallsfolge wird durch Zufallszahlentabelle oder Computer bestimmt
+# 4. Für ankommende Personen wird jeweils ein Bedingungsblock abgearbeitet 
+
+# blockrand(n, Anzahl_der_exp._Bedingungen, levels=c("Bedingung1", "Bedingung2", "Bedingung3"), block.sizes = Anzahl_der_Blockgrößen)
+```{r}
+blockrand(9, 3, levels=c("Bedingung1", "Bedingung2", "Bedingung3"), block.sizes = 1)
+```
+
+
+```{r}
+blockrand(80, 4, levels=c("Kind+Belohnung", "Kind+Keine Belohnung", "Erwachsener+Belohnung", "Erwachsener+Keine Belohnung"), block.sizes = 1)
+```
+
+# Einfaches Randomisieren
+```{r}
+complete_ra(N = 68, conditions = c("Behandlung", "Kontroll"))
+```
+
+# Dateitypen
+
+# Textdatei (.csv)
+```{r}
+download.file("http://daten.r-lernen.de/textdatei.CSV", destfile="textdatei.CSV")
+
+daten <- read.csv("textdatei.CSV")
+daten
+
+daten <- read.csv("textdatei.CSV", sep = ";", dec = ".", na.strings = '-9')
+daten
+```
+
+#Excel (.xlsx)/OpenOffice (.ods)
+
+```{r}
+download.file("http://daten.r-lernen.de/excel.xlsx", destfile="excel.xlsx", method='curl')
+download.file("http://daten.r-lernen.de/openoffice.ods", destfile="openoffice.ods", method='curl')
+
+library(readxl)
+
+daten_groesseegewicht <- read_excel("excel.xlsx", sheet='Groesse&Gewicht')
+daten_groesseegewicht
+
+```
+# Speichern
+```{r}
+download.file("http://daten.r-lernen.de/Big5.rda", destfile="Big5.rda")
+
+load("Big5.rda")
+Big_5
+save(file="Big5_neu.rda", Big_5)
+```
+# Dateipfad
+
+```{r}
+download.file("http://daten.r-lernen.de/Big5.rda", destfile="Big5.rda")
+
+load("Big5.rda")
+Big_5
+```
+
