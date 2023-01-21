@@ -36,6 +36,7 @@ ALT + SHIFT + k
 
 ```{r}
 is.na(data)
-
+na.omit(data)
+na.fail(na.omit(data))
 ```
 

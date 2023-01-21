@@ -454,6 +454,17 @@ gm4 <- gapminder
 ```
 
 # Aufgabe 1:
+# Erstellen Sie ein Balkendiagramm (geom_bar()), das Ihnen für jeden Kontinent die Anzahl der Länder ausgibt, die im Datensatz enthalten sind. Tauschen Sie anschließend die beiden Achsen.
+
+```{r}
+gapminder %>% 
+  distinct(country, .keep_all = TRUE) %>% 
+  ggplot(aes(x=continent)) + 
+  geom_bar(aes(fill=continent)) +
+  guides(fill=FALSE) +
+  coord_flip() 
+```
+
 ```{r}
 
 ggplot(gapminder, aes(x=continent, y=..count../12, fill=continent)) + 
@@ -465,6 +476,7 @@ ggplot(gapminder, aes(x=continent, y=..count../12, fill=continent)) +
 ```
 
 # Aufgabe 2:
+# Erstellen Sie ein Histogramm für die Lebenserwartung. Auf der y-Achse soll jedoch nicht die Anzahl, sondern die Dichte abgetragen sein. Fügen Sie anschließend ein Dichtediagramm (geom_density()) hinzu. Arbeiten Sie zusätzlich mit den Argumenten alpha, size, color und fill, um den Plot auch gut aussehen zu lassen.
 ```{r}
 ggplot(gapminder, aes(x=lifeExp, y=..density..)) +
   geom_histogram(alpha=0.5) +
@@ -479,6 +491,7 @@ ggplot(gapminder, aes(x=lifeExp, y=..density..)) +
 ```
 
 # Aufgabe 3:
+# Erstellen Sie für jeden Kontinent ein eigenes Dichtediagramm bezüglich der Lebenserwartung. Schrauben Sie die Transparenz herunter.
 ```{r}
 ggplot(gapminder, aes(x=lifeExp, y=..density.., fill=continent)) +
   geom_density(alpha=0.5) +
@@ -491,6 +504,7 @@ ggplot(gapminder, aes(x=lifeExp, fill=continent)) +
 ```
 
 # Aufgabe 4:
+# Erstellen Sie für jeden Kontinent ein eigenes Liniendiagramm (mit Punkten), das den zeitlichen Verlauf der Lebenserwartungs-Mediane darstellt. Fassen Sie dazu den Datensatz erst so zusammen (mit summarize()), dass für jeden Kontinent und jedes Jahr der Median über die Lebenserwartung berechnet wird.
 ```{r}
 gapminder %>% 
   group_by(continent, year) %>% 
@@ -510,6 +524,7 @@ gapminder %>%
 ```
 
 # Aufgabe 5:
+# Erstellen Sie bitte im Folgenden eine Grafik, unterteilt nach Kontinent und Jahr. Bitte begrenzen Sie sich dabei auf die Kontinente Asien und Afrika sowie die Jahre 1952 und 2007. Jede Grafik soll den Zusammenhang zwischen dem Pro-Kopf-BIP und der Lebenserwartung darstellen, wobei sich die Größe der Punkte je nach Einwohnerzahl unterscheiden sollen. 
 ```{r}
 gapminder %>% 
   filter(continent %in% c('Asia', 'Africa') & year %in% c(1952, 2007)) %>% 
@@ -528,4 +543,16 @@ gapminder %>%
   theme_classic() + 
   labs(x="Pro-Kopf-BIP", y="Lebenserwartung", size="Größe der \nBevölkerung")
 
+```
+
+
+# Aufgabe 1:
+# Erstellen Sie ein Balkendiagramm (geom_bar()), das Ihnen für jeden Kontinent die Anzahl der Länder ausgibt, die im Datensatz enthalten sind. Tauschen Sie anschließend die beiden Achsen.
+```{r}
+gapminder %>% 
+  distinct(country, .keep_all = TRUE) %>% 
+  ggplot(aes(x=continent)) + 
+  geom_bar(aes(fill=continent)) +
+  guides(fill=FALSE) +
+  coord_flip() 
 ```
