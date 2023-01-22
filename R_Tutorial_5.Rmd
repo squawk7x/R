@@ -12,7 +12,6 @@ output: html_notebook
 
 # INFERENZSSTATISTIK
 # In der Inferenzstatistik wird versucht, die Nullhypothese (das Gegenteil von der eigentlichen These H1 oder HA) zu widerlegen.
-
 ```{r}
 # -----------------------------------------------------------------------
 # qnorm(p) = z                  # Fläche links
@@ -139,6 +138,7 @@ qnorm(0.05)
 ```{r}
 z <- 1
 pnorm(z) - pnorm(-z)
+1-2*pnorm(-1)
 ```
 # POWERANALYSE
 

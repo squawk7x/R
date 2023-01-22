@@ -510,8 +510,8 @@ gapminder %>%
   group_by(continent, year) %>% 
   summarise(continent, year, median_lifeExp=median(lifeExp)) %>% 
   ggplot(aes(x=year, y=median_lifeExp, color=continent)) +
-  geom_line() 
-  +facet_wrap(vars(continent))
+  geom_line() #+
+  #facet_wrap(vars(continent))
 
 gapminder %>%
   group_by(continent, year) %>%
@@ -545,14 +545,3 @@ gapminder %>%
 
 ```
 
-
-# Aufgabe 1:
-# Erstellen Sie ein Balkendiagramm (geom_bar()), das Ihnen für jeden Kontinent die Anzahl der Länder ausgibt, die im Datensatz enthalten sind. Tauschen Sie anschließend die beiden Achsen.
-```{r}
-gapminder %>% 
-  distinct(country, .keep_all = TRUE) %>% 
-  ggplot(aes(x=continent)) + 
-  geom_bar(aes(fill=continent)) +
-  guides(fill=FALSE) +
-  coord_flip() 
-```
