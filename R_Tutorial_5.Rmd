@@ -204,7 +204,7 @@ pwr.norm.test(d = 0.5, n = NULL, sig.level = 0.01, power = 0.99, alternative = c
 
 
 ```{r}
-zemp = ((105 - 100) / 15) / sqrt(87)
+zemp = (105 - 100) / (15/sqrt(87))
 cat('empirischer z-Wert = ', zemp, '\n')
 
 p = 1 - pnorm(zemp)
@@ -220,15 +220,13 @@ d
 # H1: IQ verbessert  (IQ > 100)
 ```{r}
 a = 0.01
-zemp = ((105 - 100) / 15) / sqrt(87)
+zemp = (105 - 100) / (15 / sqrt(87))
 
 cat('\nEntscheidung über z-Wert:\n')
 cat('empirischer z-Wert = ', zemp, '\n')
 zkrit = qnorm(1-a)
 cat('kritischer z-Wert =', zkrit, '\n')
-
-
-ifelse(z > zkrit, 'signifikant', 'nicht signifikant')
+ifelse(zemp > zkrit, 'signifikant', 'nicht signifikant')
 
 cat('\nEntscheidung über P(z):\n')
 Pzemp = pnorm(zemp)
